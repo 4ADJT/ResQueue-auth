@@ -15,7 +15,8 @@ services:
         condition: service_completed_successfully
       keycloak:
         condition: service_started
-    restart: unless-stopped
+    command: ["/bin/sh", "-c", "sleep 45 && nginx -g 'daemon off;'"]
+    restart: always
 
   certbot:
     image: certbot/dns-cloudflare
@@ -82,7 +83,6 @@ services:
       PROXY_ADDRESS_FORWARDING: true
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-      KC_HEALTH_ENABLED: true
     volumes:
       - certbot-etc:/etc/letsencrypt:ro
     depends_on:
@@ -91,19 +91,6 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "--head",
-          "-fsSk",
-          "https://localhost:9000/health/ready",
-        ]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     networks:
       - imaginer-network
 

@@ -34,6 +34,7 @@ services:
       -d auth.imaginer.com.br
       -d server.imaginer.com.br
       -d gateway.imaginer.com.br
+      -d eureka.imaginer.com.br
       --non-interactive &&
       chmod -R 755 /etc/letsencrypt
       "

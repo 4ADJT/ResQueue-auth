@@ -97,8 +97,8 @@ services:
           "CMD",
           "curl",
           "--head",
-          "-fsS",
-          "https://auth.imaginer.com.br/health/ready",
+          "-fsSk",
+          "https://localhost:9000/health/ready",
         ]
       interval: 15s
       timeout: 5s

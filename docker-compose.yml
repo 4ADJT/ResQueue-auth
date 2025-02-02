@@ -1,0 +1,115 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      - keycloak
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot-etc:/etc/letsencrypt:ro
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - imaginer-network
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/dns-cloudflare
+    container_name: certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - ./cloudflare.ini:/cloudflare.ini:ro
+    entrypoint: >
+      sh -c "
+      certbot certonly --dns-cloudflare
+      --dns-cloudflare-credentials /cloudflare.ini
+      --dns-cloudflare-propagation-seconds 30
+      --agree-tos
+      --email rodrigo.brocchi@gmail.com
+      -d imaginer.com.br
+      -d auth.imaginer.com.br
+      -d server.imaginer.com.br
+      -d gateway.imaginer.com.br
+      --non-interactive &&
+      chmod -R 755 /etc/letsencrypt
+      "
+    restart: "no"
+    networks:
+      - imaginer-network
+
+  ofelia:
+    image: mcuadros/ofelia
+    container_name: ofelia
+    depends_on:
+      - certbot
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: daemon --docker
+    environment:
+      - TZ=America/Sao_Paulo
+    labels:
+      - "ofelia.enabled=true"
+      - "ofelia.job-run.certbot.schedule=0 */12 * * *"
+      - "ofelia.job-run.certbot.container=certbot"
+      - "ofelia.job-run.certbot.command=certbot renew --dns-cloudflare --dns-cloudflare-credentials /cloudflare.ini --quiet && chmod -R 755 /etc/letsencrypt"
+    networks:
+      - imaginer-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    command: start
+    ports:
+      - "9000:9000"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: ${POSTGRES_USER:-keycloak}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+      KC_HOSTNAME: auth.imaginer.com.br
+      KC_HTTP_ENABLED: false
+      KC_HTTPS_PORT: 9000
+      KC_HTTPS_CERTIFICATE_FILE: /etc/letsencrypt/live/imaginer.com.br/fullchain.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/letsencrypt/live/imaginer.com.br/privkey.pem
+      KC_HOSTNAME_STRICT: true
+      KC_PROXY_MODE: "edge"
+      PROXY_ADDRESS_FORWARDING: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - certbot-etc:/etc/letsencrypt:ro
+    depends_on:
+      certbot:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - imaginer-network
+
+  postgres:
+    image: postgres:17
+    container_name: keycloak-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-keycloak}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+      POSTGRES_DB: ${POSTGRES_DB:-keycloak}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - imaginer-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-keycloak}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  certbot-etc:
+  postgres_data:
+
+networks:
+  imaginer-network:
+    driver: bridge

@@ -74,12 +74,15 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER:-keycloak}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
       KC_HOSTNAME: auth.imaginer.com.br
+      KC_HOSTNAME_ADMIN_URL: https://auth.imaginer.com.br
       KC_HTTP_ENABLED: false
       KC_HTTPS_PORT: 9000
       KC_HTTPS_CERTIFICATE_FILE: /etc/letsencrypt/live/imaginer.com.br/fullchain.pem
       KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/letsencrypt/live/imaginer.com.br/privkey.pem
       KC_HOSTNAME_STRICT: true
       KC_PROXY_MODE: "edge"
+      KC_PROXY: "edge"
+      KC_PROXY_HEADERS: "xforwarded"
       PROXY_ADDRESS_FORWARDING: true
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}

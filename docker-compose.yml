@@ -92,8 +92,15 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://localhost:9000/health"]
-      interval: 10s
+      test:
+        [
+          "CMD",
+          "curl",
+          "--head",
+          "-fsS",
+          "https://auth.imaginer.com.br/health/ready",
+        ]
+      interval: 15s
       timeout: 5s
       retries: 5
       start_period: 30s

@@ -27,6 +27,8 @@ KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=uma_senha_segura
 ```
 
+Também existe um exemplo disponível no repositório como **`.env.example`**.
+
 ---
 
 ### **2️⃣ Criar o arquivo `cloudflare.ini`**
@@ -60,11 +62,11 @@ docker compose up -d
 
 Isso iniciará:
 
-- Keycloak na porta `9000`
-- Nginx na porta `443` (HTTPS) e `80` (HTTP)
-- Certbot para emitir certificados SSL
-- PostgreSQL para armazenar os dados do Keycloak
-- Ofelia para automatizar a renovação do Certbot
+- **Keycloak** na porta `9000`
+- **Nginx** na porta `443` (HTTPS) e `80` (HTTP)
+- **Certbot** para emitir certificados SSL
+- **PostgreSQL** para armazenar os dados do Keycloak
+- **Ofelia** para automatizar a renovação do Certbot
 
 ---
 
@@ -133,9 +135,12 @@ docker compose down && docker compose up -d --force-recreate
 .
 ├── docker-compose.yml
 ├── nginx.conf
+├── nginx_external_services.conf
 ├── cloudflare.ini  # Arquivo de credenciais Cloudflare (chmod 600)
 ├── .env            # Variáveis de ambiente
-└── README.md       # Documentação
+├── .env.example    # Exemplo de configuração
+├── .gitignore      # Arquivo para ignorar arquivos sensíveis
+├── README.md       # Documentação
 ```
 
 Agora seu ambiente está pronto para rodar com **Keycloak, PostgreSQL, Certbot e Nginx**! 🚀🔥

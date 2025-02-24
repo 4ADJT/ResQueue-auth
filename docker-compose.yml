@@ -54,6 +54,7 @@ services:
     command: daemon --docker
     environment:
       - TZ=America/Sao_Paulo
+    restart: always
     labels:
       - "ofelia.enabled=true"
       - "ofelia.job-run.certbot.schedule=0 */12 * * *"
@@ -109,6 +110,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - imaginer-network
+    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-keycloak}"]
       interval: 10s
